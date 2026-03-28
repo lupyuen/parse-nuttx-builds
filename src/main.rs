@@ -302,6 +302,7 @@ async fn process_target(
             line.starts_with("/usr/bin/bash: line 1: arm-nuttx-eabi-gcc: command not found") ||  // "/usr/bin/bash: line 1: arm-nuttx-eabi-gcc: command not found \n /usr/bin/bash: line 1: arm-nuttx-eabi-gcc: command not found"
             line.starts_with("arm-none-eabi-ld: warning: /github/workspace/sources") ||  // "arm-none-eabi-ld: warning: /github/workspace/sources/apps/bin/errno has a LOAD segment with RWX permissions"
             line.starts_with("riscv-none-elf-ld: warning: /github/workspace/sources") ||  // "riscv-none-elf-ld: warning: /github/workspace/sources/nuttx/nuttx has a LOAD segment with RWX permissions"
+            (line.starts_with("riscv-none-elf-strip") && line.contains("adjusted to")) ||  // "riscv-none-elf-strip: /github/workspace/sources/apps/bin/stO9cKyM: section .fini_array lma 0xc0101009 adjusted to 0xc010100c \n riscv-none-elf-strip: /github/workspace/sources/apps/bin/stlUMDKA: section .fini_array lma 0xc0101279 adjusted to 0xc010127c \n riscv-none-elf-strip: /github/workspace/sources/apps/bin/stqCsC2h: section .fini_array lma 0xc0101279 adjusted to 0xc010127c"
             line.starts_with("HEAD detached at") ||  // "HEAD detached at pull/18396/merge"
             line.starts_with("modified:") ||  // "modified:   boards/sim/sim/sim/configs/login/defconfig"
             line.starts_with("no changes added to commit") ||  // "no changes added to commit (use \"git add\" and/or \"git commit -a\")"
@@ -311,6 +312,7 @@ async fn process_target(
             (line.contains("bytes (") && line.contains("copied")) ||  // "2048 bytes (2.0 kB, 2.0 KiB) copied, 4.7753e-05 s, 42.9 MB/s"
             line.starts_with("diff: args.gn") ||  // "diff: args.gn: No such file or directory"
             (line.starts_with("chip/stm32_gpio.c") && line.contains("will be deprecated")) ||  // "chip/stm32_gpio.c:44:11: note: '#pragma message: CONFIG_STM32_USE_LEGACY_PINMAP will be deprecated migrate board.h see tools/stm32_pinmap_tool.py' \n 44 | #  pragma message \"CONFIG_STM32_USE_LEGACY_PINMAP will be deprecated migrate board.h see tools/stm32_pinmap_tool.py\" \n |           ^~~~~~~"
+            line.starts_with("Note: skipping refresh") ||  // "Note: skipping refresh for debug defconfig."
             // Begin NTFC
             line.starts_with("Running NuttX...") ||  // "Running NuttX..."
             line.starts_with("++ pwd") ||  // "++ pwd"
