@@ -394,6 +394,7 @@ async fn process_target(
         &msg,
         nuttx_hash_prev, apps_hash_prev, build_score_prev,
         nuttx_hash_next, apps_hash_next, build_score_next,
+        run_id, job_id, step
     ).await?;
     Ok(())
 }
@@ -418,6 +419,7 @@ async fn post_to_pushgateway(
     msg: &Vec<&str>,
     nuttx_hash_prev: &Option<String>, apps_hash_prev: &Option<String>, build_score_prev: Option<f32>,  // For Rewind Build: Hash and Build Score for Previous Commit
     nuttx_hash_next: &Option<String>, apps_hash_next: &Option<String>, build_score_next: Option<f32>,  // For Rewind Build: Hash and Build Score for Next Commit
+    run_id: Option<&str>, job_id: Option<&str>, step: Option<&str>
 ) -> Result<(), Box<dyn std::error::Error>> {
     // Get the Board and Config
     let version = 3;
@@ -496,18 +498,19 @@ async fn post_to_pushgateway(
 
     // Save the JSON to a success/warning/error file
     // Filename: success|warning|error/runid/group:board:config.json
-    // Like "warning/arm-01:c5471evm:httpd.json"
+    // Like "warning/23653869993/arm-01:c5471evm:httpd.json"
+    let run_id = run_id.unwrap_or("unknown");
     let filename =
         if build_score == 1.0 { "success" }
         else if build_score == 0.0 { "error" }
         else { "warning" };
-    let filename = format!("{filename}/{}:{}:{}.json", group, board, config);
+    let filename = format!("{filename}/{run_id}/{group}:{board}:{config}.json");
     println!("filename={filename}");
 
     // JSON: { timestamp:"2026-03-27T22:44:37", arch:"arm", subarch:"c5471", group:"arm-01", board:"c5471evm", config:"httpd", url:"https://github.com/apache/nuttx/actions/runs/23653869993/job/68961591760#step:10:353", build_score:0.8, version:"3", msg:"/usr/bin/bash: line 1: arm-nuttx-eabi-gcc: command not found \n /usr/bin/bash: line 1: arm-nuttx-eabi-gcc: command not found" }
     let json = format!(
 r##"
-{{ "timestamp":"{timestamp}", "arch":"{arch}", "subarch":"{subarch}", "group":"{group}", "board":"{board}", "config":"{config}", "url":"{url}", "build_score":{build_score}, "version":"{version}"{msg_opt_json} }}
+{{ "timestamp":"{timestamp}", "arch":"{arch}", "subarch":"{subarch}", "group":"{group}", "board":"{board}", "config":"{config}", "build_score":{build_score}, "version":"{version}", "url":"{url}"{msg_opt_json} }}
 "##);
     println!("json={json}");
 
