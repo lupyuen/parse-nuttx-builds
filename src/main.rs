@@ -454,6 +454,9 @@ async fn post_to_pushgateway(
     let msg_opt =
         if msg.is_empty() { "".into() }
         else { format!(", msg=\"{msg_join}\"") };
+    let msg_opt_json =
+        if msg.is_empty() { "".into() }
+        else { format!(", \"msg\"=\"{msg_join}\"") };
     let url_display =
         if msg.is_empty() { "".into() }
         else { url.replace("https://", "") };
@@ -472,9 +475,9 @@ async fn post_to_pushgateway(
     let user =
         if group == "unknown" { "rewind" }
         else { user };
-    let target_rewind =
-        if user == "rewind" { format!("{target}@{}@{}", nuttx_hash.unwrap(), apps_hash.unwrap()) }
-        else { target.to_string() };
+    // let target_rewind =
+    //     if user == "rewind" { format!("{target}@{}@{}", nuttx_hash.unwrap(), apps_hash.unwrap()) }
+    //     else { target.to_string() };
     let prev_opt =
         if build_score_prev.is_some() {
             format!(r#", nuttx_hash_prev="{}", apps_hash_prev="{}", build_score_prev="{}""#, 
@@ -491,14 +494,31 @@ async fn post_to_pushgateway(
         if let Some(t) = timestamp_log { t }
         else { timestamp };
 
+    // Save the JSON to a success/warning/error file
+    // Filename: success|warning|error/runid/group:board:config.json
+    // Like "warning/arm-01:c5471evm:httpd.json"
+    let filename =
+        if build_score == 1.0 { "success" }
+        else if build_score == 0.0 { "error" }
+        else { "warning" };
+    let filename = format!("{filename}/{}:{}:{}.json", group, board, config);
+    println!("filename={filename}");
+
+    // JSON: { timestamp:"2026-03-27T22:44:37", arch:"arm", subarch:"c5471", group:"arm-01", board:"c5471evm", config:"httpd", url:"https://github.com/apache/nuttx/actions/runs/23653869993/job/68961591760#step:10:353", build_score:0.8, version:"3", msg:"/usr/bin/bash: line 1: arm-nuttx-eabi-gcc: command not found \n /usr/bin/bash: line 1: arm-nuttx-eabi-gcc: command not found" }
+    let json = format!(
+r##"
+{{ "timestamp":"{timestamp}", "arch":"{arch}", "subarch":"{subarch}", "group":"{group}", "board":"{board}", "config":"{config}", "url":"{url}", "build_score":{build_score}, "version":"{version}"{msg_opt_json} }}
+"##);
+    println!("json={json}");
+
     // Compose the Pushgateway Metric
-    let body = format!(
+    let _body = format!(
 r##"
 # TYPE build_score gauge
 # HELP build_score 1.0 for successful build, 0.0 for failed build
 build_score{{ version="{version}", timestamp="{timestamp}", timestamp_log="{timestamp_log}", user="{user}", arch="{arch}", subarch="{subarch}", group="{group}", board="{board}", config="{config}", target="{target}", url="{url}", url_display="{url_display}"{msg_opt}{nuttx_hash_opt}{apps_hash_opt}{prev_opt}{next_opt} }} {build_score}
 "##);
-    println!("body={body}");
+    // println!("body={body}");
 
     //     let client = reqwest::Client::new();
     //     let pushgateway = format!("http://localhost:9091/metrics/job/{user}/instance/{target_rewind}");

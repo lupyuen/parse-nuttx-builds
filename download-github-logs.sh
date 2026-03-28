@@ -80,7 +80,6 @@ function ingest_log {
     --run-id $run_id \
     --job-id $job_id \
     --step $step
-  exit ####
 }
 
 ## Download the Run Logs
