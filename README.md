@@ -1,2 +1,3 @@
-# parse-nuttx-builds
-Download and Parse the GitHub Build Logs for Apache NuttX RTOS
+# Download and Parse the GitHub Build Logs for Apache NuttX RTOS
+
+Watch the video: https://youtu.be/182h8cRpfvI
