@@ -459,7 +459,7 @@ async fn post_to_pushgateway(
         else { format!(", msg=\"{msg_join}\"") };
     let msg_opt_json =
         if msg.is_empty() { "".into() }
-        else { format!(", \"msg\":\"{msg_join}\"") };
+        else { format!(",\n\"msg\":\"{msg_join}\"") };
     let url_display =
         if msg.is_empty() { "".into() }
         else { url.replace("https://", "") };
@@ -505,15 +505,29 @@ async fn post_to_pushgateway(
         if build_score == 1.0 { "success" }
         else if build_score == 0.0 { "error" }
         else { "warning" };
-    let filename = format!("{filename}/{run_id}/{group}:{board}:{config}.json");
+    let filename = format!("../nuttx-github-jobs/{filename}/{run_id}/{group}:{board}:{config}.json");
     println!("filename={filename}");
 
     // JSON: { timestamp:"2026-03-27T22:44:37", arch:"arm", subarch:"c5471", group:"arm-01", board:"c5471evm", config:"httpd", url:"https://github.com/apache/nuttx/actions/runs/23653869993/job/68961591760#step:10:353", build_score:0.8, version:"3", msg:"/usr/bin/bash: line 1: arm-nuttx-eabi-gcc: command not found \n /usr/bin/bash: line 1: arm-nuttx-eabi-gcc: command not found" }
     let json = format!(
-r##"
-{{ "timestamp":"{timestamp}", "arch":"{arch}", "subarch":"{subarch}", "group":"{group}", "board":"{board}", "config":"{config}", "build_score":{build_score}, "version":"{version}", "url":"{url}"{msg_opt_json} }}
+r##"{{
+"timestamp":"{timestamp}",
+"arch":"{arch}",
+"subarch":"{subarch}",
+"group":"{group}",
+"board":"{board}",
+"config":"{config}",
+"build_score":{build_score},
+"version":"{version}",
+"url":"{url}"{msg_opt_json}
+}}
 "##);
     println!("json={json}");
+
+    // Create the parent directory if it doesn't exist.
+    let parent_dir = Path::new(&filename).parent().unwrap();
+    if !parent_dir.exists() { fs::create_dir_all(parent_dir).unwrap(); }
+    fs::write(&filename, json).unwrap();
 
     // Compose the Pushgateway Metric
     let _body = format!(
