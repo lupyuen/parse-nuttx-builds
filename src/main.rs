@@ -292,6 +292,7 @@ async fn process_target(
             line.starts_with("CP: ") ||  // "CP: arch/dummy/Kconfig to /tmp/build-test-knsh64/nuttx/arch/dummy/dummy_kconfig"
             line.starts_with("LN: ") ||  // "LN: platform/board to /tmp/build-test-knsh64/apps/platform/dummy"
             // Added for parse-nuttx-builds
+            line == "Build Attempt 1" ||  // "Build Attempt 1"
             line.starts_with("HEAD detached at") ||  // "HEAD detached at pull/18396/merge"
             line.starts_with("modified:") ||  // "modified:   boards/sim/sim/sim/configs/login/defconfig"
             line.starts_with("no changes added to commit") ||  // "no changes added to commit (use \"git add\" and/or \"git commit -a\")"
