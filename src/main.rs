@@ -259,7 +259,7 @@ async fn process_target(
             line.starts_with("Building") ||
             line.starts_with("Normalize") ||
             line.starts_with("[1/1] Normalize") ||  // "[1/1] Normalize linum-stm32h753bi/nsh"
-            line.replace(" ", "").starts_with("%Total") ||  // "% Tot al      % Re ceived % Xferd  Average Speed   Time    Time     Time  Current"
+            line.replace(" ", "").starts_with("%Tota") ||  // "% Tot al      % Re ceived % Xferd  Average Speed   Time    Time     Time  Current"
             line.starts_with("Dload") ||
             line.starts_with("~/apps") ||
             line.starts_with("~/nuttx") ||

@@ -14,14 +14,17 @@ msys2_step=9  ## TODO: Step may change for msys2 Builds
 nuttx_hash=master
 apps_hash=master
 
-## TODO
+## For Testing: NuttX
 user=apache
 repo=nuttx
-
-## For Testing
-## run_id=23653869993  ## sim-02:sim:login: >>>> WARNING: YOU ARE USING DEFAULT PASSWORD KEYS (CONFIG_FSUTILS_PASSWD_KEY1-4)!!! PLEASE CHANGE IT!!! <<<< \n 17d16 \n < CONFIG_BOARD_ETC_ROMFS_PASSWD_PASSWORD=\"Administrator\" \n Saving the new configuration file
+run_id=23653869993  ## sim-02:sim:login: >>>> WARNING: YOU ARE USING DEFAULT PASSWORD KEYS (CONFIG_FSUTILS_PASSWD_KEY1-4)!!! PLEASE CHANGE IT!!! <<<< \n 17d16 \n < CONFIG_BOARD_ETC_ROMFS_PASSWD_PASSWORD=\"Administrator\" \n Saving the new configuration file
 run_id=23669957941  ## Successful
 run_id=23679432579  ## Test Retry
+
+## For Testing: NuttX Apps
+# user=apache
+# repo=nuttx-apps
+# run_id=23636620855
 
 ## Generate the list of deconfigs
 defconfig=/tmp/defconfig-github.txt
