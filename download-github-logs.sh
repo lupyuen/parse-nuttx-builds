@@ -11,13 +11,13 @@ set -x  #  Echo commands
 
 linux_step=10 ## TODO: Step may change for Linux Builds
 msys2_step=9  ## TODO: Step may change for msys2 Builds
+nuttx_hash=master
+apps_hash=master
 
 ## TODO
 user=apache
 repo=nuttx
 run_id=23653869993
-nuttx_hash=master
-apps_hash=master
 
 ## Generate the list of deconfigs
 defconfig=/tmp/defconfig-github.txt
