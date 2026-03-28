@@ -456,7 +456,7 @@ async fn post_to_pushgateway(
         else { format!(", msg=\"{msg_join}\"") };
     let msg_opt_json =
         if msg.is_empty() { "".into() }
-        else { format!(", \"msg\"=\"{msg_join}\"") };
+        else { format!(", \"msg\":\"{msg_join}\"") };
     let url_display =
         if msg.is_empty() { "".into() }
         else { url.replace("https://", "") };
