@@ -259,7 +259,7 @@ async fn process_target(
             line.starts_with("Building") ||
             line.starts_with("Normalize") ||
             line.starts_with("[1/1] Normalize") ||  // "[1/1] Normalize linum-stm32h753bi/nsh"
-            line.starts_with("% Total") ||
+            line.replace(" ", "").starts_with("%Total") ||  // "% Tot al      % Re ceived % Xferd  Average Speed   Time    Time     Time  Current"
             line.starts_with("Dload") ||
             line.starts_with("~/apps") ||
             line.starts_with("~/nuttx") ||
@@ -292,7 +292,7 @@ async fn process_target(
             line.starts_with("CP: ") ||  // "CP: arch/dummy/Kconfig to /tmp/build-test-knsh64/nuttx/arch/dummy/dummy_kconfig"
             line.starts_with("LN: ") ||  // "LN: platform/board to /tmp/build-test-knsh64/apps/platform/dummy"
             // Added for parse-nuttx-builds
-            line.starts_with("mkdir: cannot create directory '/github/workspace/sources/nuttx/arch/xtensa") ||  // "mkdir: cannot create directory '/github/workspace/sources/nuttx/arch/xtensa/src/esp32s2/ulp': File exists"
+            line.starts_with("mkdir: cannot create directory '/github/workspace/sources/nuttx/arch") ||  // "mkdir: cannot create directory '/github/workspace/sources/nuttx/arch/xtensa/src/esp32s2/ulp': File exists"
             line.starts_with("TOOLS_DIR path is") ||  // "TOOLS_DIR path is \"/github/workspace/sources/nuttx\""
             line.starts_with("HOST =") ||  // "HOST = Linux"
             line.starts_with("MK: Notice: No header files found in /github/workspace/sources/nuttx/arch/arm") ||  // "MK: Notice: No header files found in /github/workspace/sources/nuttx/arch/arm64/src"
@@ -308,6 +308,7 @@ async fn process_target(
             line.contains("records out") ||  // "508+0 records out"
             line.contains("bytes copied") ||  // "508 bytes copied, 0.00110255 s, 461 kB/s"
             (line.contains("bytes (") && line.contains("copied")) ||  // "2048 bytes (2.0 kB, 2.0 KiB) copied, 4.7753e-05 s, 42.9 MB/s"
+            line.starts_with("diff: args.gn") ||  // "diff: args.gn: No such file or directory"
             // Begin NTFC
             line.starts_with("Running NuttX...") ||  // "Running NuttX..."
             line.starts_with("++ pwd") ||  // "++ pwd"
@@ -331,6 +332,13 @@ async fn process_target(
             line.starts_with("JSON config:") ||  // "JSON config:"
             line.starts_with("{'args':") ||  // "{'args': {'kv': []},"
             line.starts_with("'module':") ||  // "'module': {'exclude_module': [], 'include_module': [], 'order': []}}"
+            line.starts_with("'-machine") ||  // "'-machine '"
+            line.starts_with("'virt") ||  // "'virt,virtualization=on,gic-version=3 '"
+            line.starts_with("'-net") ||  // "'-net none -chardev '"
+            line.starts_with("'stdio") ||  // "'stdio,id=con,mux=on -serial '"
+            line.starts_with("'chardev") ||  // "'chardev:con -mon '"
+            line.starts_with("'include_module':") ||  // "'include_module': [],"
+            line.starts_with("'order':") ||  // "'order': []}}"
             line.starts_with("[1m============================= test session starts") ||  // "[1m============================= test session starts ==============================[0m"
             line.starts_with("platform") ||  // "platform linux -- Python 3.10.12, pytest-9.0.2, pluggy-1.6.0"
             line.starts_with("rootdir:") ||  // "rootdir: /github/workspace"
