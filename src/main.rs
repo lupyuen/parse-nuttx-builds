@@ -399,12 +399,13 @@ async fn process_target(
     Ok(())
 }
 
-// Post the Target to Prometheus Pushgateway
-// cat <<EOF | curl --data-binary @- http://localhost:9091/metrics/job/nuttxpr/instance/ox64:nsh
-// # TYPE build_score gauge
-// # HELP build_score 1.0 for successful build, 0.0 for failed build
-// build_score{ version=1, user="nuttxpr", group="risc-v-01", board="ox64", config="nsh", target="ox64:nsh", url="http://aaa", msg="warning: aaa" } 0.5
-// EOF
+/// Save the JSON to a success/warning/error file.
+/// Post the Target to Prometheus Pushgateway.
+/// cat <<EOF | curl --data-binary @- http://localhost:9091/metrics/job/nuttxpr/instance/ox64:nsh
+/// # TYPE build_score gauge
+/// # HELP build_score 1.0 for successful build, 0.0 for failed build
+/// build_score{ version=1, user="nuttxpr", group="risc-v-01", board="ox64", config="nsh", target="ox64:nsh", url="http://aaa", msg="warning: aaa" } 0.5
+/// EOF
 async fn post_to_pushgateway(
     build_score: f32,
     timestamp: &str,
