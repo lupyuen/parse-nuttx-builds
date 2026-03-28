@@ -77,9 +77,9 @@ async fn process_file(args: &Args) -> Result<(), Box<dyn std::error::Error>> {
         .to_str().unwrap();
     let log = fs::read_to_string(&args.file).unwrap();
 
-    // Look for "##[group]Run ./sources/nuttx/.github/actions/ci-container" and truncate everything before
+    // Look for "##[endgroup]\n##[group]Run ./sources/nuttx/.github/actions/ci-container" and truncate everything before
     // Same for "##[group]Run echo "::add-matcher::sources/nuttx/.github/gcc.json""
-    let log_split = &log.split("##[group]Run ./sources/nuttx/.github/actions/ci-container")
+    let log_split = &log.split("##[endgroup]\n##[group]Run ./sources/nuttx/.github/actions/ci-container")
         .collect::<Vec<_>>();
     let log = log_split.last().unwrap();
     let log_split = &log.split("##[group]Run echo \"::add-matcher::sources/nuttx/.github/gcc.json\"")
@@ -295,12 +295,13 @@ async fn process_target(
             line.starts_with("mkdir: cannot create directory '/github/workspace/sources/nuttx/arch") ||  // "mkdir: cannot create directory '/github/workspace/sources/nuttx/arch/xtensa/src/esp32s2/ulp': File exists"
             line.starts_with("TOOLS_DIR path is") ||  // "TOOLS_DIR path is \"/github/workspace/sources/nuttx\""
             line.starts_with("HOST =") ||  // "HOST = Linux"
-            line.starts_with("MK: Notice: No header files found in /github/workspace/sources/nuttx/arch/arm") ||  // "MK: Notice: No header files found in /github/workspace/sources/nuttx/arch/arm64/src"
+            line.starts_with("MK: Notice: No header files found in /github/workspace/sources/nuttx/arch") ||  // "MK: Notice: No header files found in /github/workspace/sources/nuttx/arch/arm64/src"
             line.starts_with("/github/workspace/sources/apps /github/workspace/sources/nuttx") ||  // "/github/workspace/sources/apps /github/workspace/sources/nuttx"
             line.starts_with("/github/workspace/sources/nuttx") ||  // "/github/workspace/sources/nuttx"
             line.starts_with("/usr/bin/bash: line 1: arm-nuttx-elf-gcc: command not found") ||  // "/usr/bin/bash: line 1: arm-nuttx-elf-gcc: command not found"
             line.starts_with("/usr/bin/bash: line 1: arm-nuttx-eabi-gcc: command not found") ||  // "/usr/bin/bash: line 1: arm-nuttx-eabi-gcc: command not found \n /usr/bin/bash: line 1: arm-nuttx-eabi-gcc: command not found"
-            line.starts_with("arm-none-eabi-ld: warning: /github/workspace/sources/apps/bin") ||  // "arm-none-eabi-ld: warning: /github/workspace/sources/apps/bin/errno has a LOAD segment with RWX permissions"
+            line.starts_with("arm-none-eabi-ld: warning: /github/workspace/sources") ||  // "arm-none-eabi-ld: warning: /github/workspace/sources/apps/bin/errno has a LOAD segment with RWX permissions"
+            line.starts_with("riscv-none-elf-ld: warning: /github/workspace/sources") ||  // "riscv-none-elf-ld: warning: /github/workspace/sources/nuttx/nuttx has a LOAD segment with RWX permissions"
             line.starts_with("HEAD detached at") ||  // "HEAD detached at pull/18396/merge"
             line.starts_with("modified:") ||  // "modified:   boards/sim/sim/sim/configs/login/defconfig"
             line.starts_with("no changes added to commit") ||  // "no changes added to commit (use \"git add\" and/or \"git commit -a\")"
@@ -309,6 +310,7 @@ async fn process_target(
             line.contains("bytes copied") ||  // "508 bytes copied, 0.00110255 s, 461 kB/s"
             (line.contains("bytes (") && line.contains("copied")) ||  // "2048 bytes (2.0 kB, 2.0 KiB) copied, 4.7753e-05 s, 42.9 MB/s"
             line.starts_with("diff: args.gn") ||  // "diff: args.gn: No such file or directory"
+            (line.starts_with("chip/stm32_gpio.c") && line.contains("will be deprecated")) ||  // "chip/stm32_gpio.c:44:11: note: '#pragma message: CONFIG_STM32_USE_LEGACY_PINMAP will be deprecated migrate board.h see tools/stm32_pinmap_tool.py' \n 44 | #  pragma message \"CONFIG_STM32_USE_LEGACY_PINMAP will be deprecated migrate board.h see tools/stm32_pinmap_tool.py\" \n |           ^~~~~~~"
             // Begin NTFC
             line.starts_with("Running NuttX...") ||  // "Running NuttX..."
             line.starts_with("++ pwd") ||  // "++ pwd"

@@ -17,8 +17,8 @@ apps_hash=master
 ## TODO
 user=apache
 repo=nuttx
-run_id=23653869993  ## sim-02:sim:login: >>>> WARNING: YOU ARE USING DEFAULT PASSWORD KEYS (CONFIG_FSUTILS_PASSWD_KEY1-4)!!! PLEASE CHANGE IT!!! <<<< \n 17d16 \n < CONFIG_BOARD_ETC_ROMFS_PASSWD_PASSWORD=\"Administrator\" \n Saving the new configuration file
-## run_id=23669957941  ## Successful
+## run_id=23653869993  ## sim-02:sim:login: >>>> WARNING: YOU ARE USING DEFAULT PASSWORD KEYS (CONFIG_FSUTILS_PASSWD_KEY1-4)!!! PLEASE CHANGE IT!!! <<<< \n 17d16 \n < CONFIG_BOARD_ETC_ROMFS_PASSWD_PASSWORD=\"Administrator\" \n Saving the new configuration file
+run_id=23669957941  ## Successful
 
 ## Generate the list of deconfigs
 defconfig=/tmp/defconfig-github.txt
