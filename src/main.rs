@@ -419,7 +419,7 @@ async fn post_to_pushgateway(
     msg: &Vec<&str>,
     nuttx_hash_prev: &Option<String>, apps_hash_prev: &Option<String>, build_score_prev: Option<f32>,  // For Rewind Build: Hash and Build Score for Previous Commit
     nuttx_hash_next: &Option<String>, apps_hash_next: &Option<String>, build_score_next: Option<f32>,  // For Rewind Build: Hash and Build Score for Next Commit
-    run_id: Option<&str>, job_id: Option<&str>, step: Option<&str>
+    run_id: Option<&str>, _job_id: Option<&str>, _step: Option<&str>
 ) -> Result<(), Box<dyn std::error::Error>> {
     // Get the Board and Config
     let version = 3;
