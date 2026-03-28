@@ -9,7 +9,7 @@
 set -e  #  Exit when any command fails
 set -x  #  Echo commands
 
-linux_step=11 ## TODO: Step may change for Linux Builds
+linux_step=10 ## TODO: Step may change for Linux Builds
 msys2_step=9  ## TODO: Step may change for msys2 Builds
 
 ## TODO
