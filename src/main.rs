@@ -357,7 +357,7 @@ async fn process_target(
             line.starts_with("session timeout:") ||  // "session timeout: 3600.0s"
             line.starts_with("collected") ||  // "collected 932 items"
             line.starts_with("../../nuttx-ntfc/external/nuttx-testing") ||  // "../../nuttx-ntfc/external/nuttx-testing/arch/os/integration/test_arch_os_integration.py::test_os [32mPASSED[0m[32m [  1%][0m"
-            line.starts_with("[32m================== ") ||  // "[32m================== [32m[1m72 passed[0m, [33m7 skipped[0m[32m in 653.76s (0:10:53)[0m[32m ===================[0m"
+            line.starts_with("[32m======") ||  // "[32m================== [32m[1m72 passed[0m, [33m7 skipped[0m[32m in 653.76s (0:10:53)[0m[32m ===================[0m"
             line.starts_with("+ ret=") ||  // "+ ret=0"
             line == "0" ||  // "0"
             line.starts_with("+ echo") ||  // "+ echo 0"
@@ -366,7 +366,24 @@ async fn process_target(
             line.starts_with("+ rm") ||  // "+ rm -f pytest.debug.log"
             line.starts_with("+ mv") ||  // "+ mv result /github/workspace/nuttx-ntfc/external/buildartifacts/sabre-6quad/citest//ntfc"
             line.starts_with("+ exit") ||  // "+ exit 0"
+            line.starts_with("+ dd") ||  // "+ dd if=/dev/zero of=fatfs.img bs=512 count=128K"
+            line.starts_with("+ mkfs") ||  // "+ mkfs.fat fatfs.img"
+            line.starts_with("+ chmod") ||  // "+ chmod 777 ./fatfs.img"
+            line.starts_with("'-smp") ||  // "'-smp 1 -bios none -nographic '"
+            line.starts_with("'-drive") ||  // "'-drive '"
+            line.starts_with("'index=") ||  // "'index=0,id=userdata,if=none,format=raw,file=./fatfs.img '"
+            line.starts_with("'-device") ||  // "'-device '"
             // End NTFC
+            // Begin qemu-armv8a:xedge_demo
+            line.starts_with("Note: switching to") ||  // "Note: switching to '227a4b998300fa4cfde871dc7dac92c09e1636c2'."
+            line.starts_with("You are in") ||  // "You are in 'detached HEAD' state. You can look around, make experimental"
+            line.starts_with("changes and commit them") ||  // "changes and commit them, and you can discard any commits you make in this"
+            line.starts_with("state without impacting") ||  // "state without impacting any branches by switching back to a branch."
+            line.starts_with("If you want to") ||  // "If you want to create a new branch to retain commits you create, you may"
+            line.starts_with("do so (now or later)") ||  // "do so (now or later) by using -c with the switch command. Example:"
+            line.starts_with("git switch") ||  // "git switch"
+            line.starts_with("Or undo this operation") ||  // "Or undo this operation with:"
+            // End qemu-armv8a:xedge_demo
             false
         { continue; }
 
