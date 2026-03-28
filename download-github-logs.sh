@@ -16,6 +16,12 @@ msys2_step=9  ## TODO: Step may change for msys2 Builds
 user=apache
 repo=nuttx
 run_id=23653869993
+nuttx_hash=master
+apps_hash=master
+
+## Generate the list of deconfigs
+defconfig=/tmp/defconfig-github.txt
+find $HOME/riscv/nuttx -name defconfig >$defconfig
 
 function ingest_log {
   ## Fetch the Jobs for the Run ID. Get the Job ID for the Job Name.
@@ -63,7 +69,6 @@ function ingest_log {
   set +x ; echo url=$url ; set -x
 
   ## Ingest the Log File
-  echo \
   cargo run -- \
     --user $user \
     --repo $repo \
@@ -75,6 +80,7 @@ function ingest_log {
     --run-id $run_id \
     --job-id $job_id \
     --step $step
+  exit ####
 }
 
 ## Download the Run Logs

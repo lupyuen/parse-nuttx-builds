@@ -5,7 +5,6 @@
 //! (3) Post to Prometheus Pushgateway
 
 use std::{
-    collections::HashSet, 
     fs::{self, File}, 
     io::{BufRead, BufReader}, 
     ops::Sub,
@@ -17,7 +16,6 @@ use std::{
 use chrono::DateTime;
 use clap::Parser;
 use regex::Regex;
-use serde_json::Value;
 
 /// Command-Line Arguments
 #[derive(Parser, Debug)]
@@ -33,25 +31,25 @@ struct Args {
     #[arg(long, default_value = "")]
     repo: String,
     /// For GitHub Actions: Pathname of the downloaded Run Log
-    #[arg(long, default_value = "")]
+    #[arg(long)]
     file: String,
     /// For GitHub Actions: Commit Hash of the NuttX Repo (`7f84a64109f94787d92c2f44465e43fde6f3d28f`)
-    #[arg(long, default_value = "")]
+    #[arg(long)]
     nuttx_hash: String,
     /// For GitHub Actions: Commit Hash of the NuttX Apps Repo (`d6edbd0cec72cb44ceb9d0f5b932cbd7a2b96288``)
-    #[arg(long, default_value = "")]
+    #[arg(long)]
     apps_hash: String,
     /// For GitHub Actions: Target Group of the CI Build (`arm-01`)
-    #[arg(long, default_value = "")]
+    #[arg(long)]
     group: String,
     /// For GitHub Actions: Run ID of the CI Build (`11603561928`)
-    #[arg(long, default_value = "")]
+    #[arg(long)]
     run_id: String,
     /// For GitHub Actions: Job ID for the Target Group inside the CI Build Run (`32310817851`)
-    #[arg(long, default_value = "")]
+    #[arg(long)]
     job_id: String,
     /// For GitHub Actions: Step Number of the Build Step inside the CI Job (`7`)
-    #[arg(long, default_value = "")]
+    #[arg(long)]
     step: String,
 }
 
@@ -62,203 +60,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Args::parse();
 
     // If Log File is specified: Process the Log File
-    if args.file != "" {
-        process_file(&args).await?;
-        return Ok(());
-    }
-
-    // If GitLab Token is present: Process the GitLab Snippets
-    if std::env::var("GITLAB_TOKEN").is_ok() {
-        process_snippets(&args).await?;
-        return Ok(());
-    }
-
-    // Init the GitHub Client
-    let token = std::env::var("GITHUB_TOKEN")
-        .expect("GITHUB_TOKEN env variable is required");
-    let octocrab = octocrab::Octocrab::builder()
-        .personal_token(token)
-        .build()?;
-
-    // Fetch the Latest Gists, reverse chronological order
-    let gists = octocrab
-        .gists()
-        .list_user_gists(&args.user)
-        .per_page(100)
-        .send()
-        .await?;
-
-    // Process Every Gist
-    let mut past_filenames = HashSet::<String>::new();
-    for mut gist in gists {
-        let id = gist.id;  // "6e5150f02e081be935fa525e6546cb2b"
-        let url = gist.html_url;  // "https://gist.github.com/nuttxpr/6e5150f02e081be935fa525e6546cb2b"
-        let timestamp_log = gist.created_at.to_rfc3339();
-
-        // Skip the Dubious Gists
-        if gist.files.first_entry().is_none() {
-            println!("*** No Files: {url}");
-            continue;
-        }
-        let file = gist.files.first_entry().unwrap();
-        let filename = file.get().filename.as_str();  // "ci-arm-04.log"
-        if !filename.starts_with("ci-") {
-            println!("*** Not A Build Log: {url}");
-            continue;
-        }
-
-        // Skip the filenames we've seen before
-        // Except "ci-unknown.log" for Build Rewind
-        if past_filenames.contains(filename)
-            && !filename.contains("unknown") {
-            println!("*** Skipping File {filename}: {url}");
-            continue;
-        }
-        past_filenames.insert(filename.into());
-
-        // Get the Gist URL
-        let raw_url = file.get().raw_url.as_str();  // "https://gist.githubusercontent.com/nuttxpr/6e5150f02e081be935fa525e6546cb2b/raw/9f07185404c0f81914f622c0152a980022539968/ci-arm-04.log"
-        let description = gist
-            .description
-            .unwrap_or("<No description>".into());  // "[arm-04] CI Log for nuttx @ f6facf7602003071aaabc6dd00082b7ebb2f5ab9 / nuttx-apps @ d9e178aad022030224d1c95628cab1784a13a339"
-        let target_group = filename
-            .replace("ci-", "")
-            .replace(".log", "");  // "arm-04"
-        println!("id={id} | url={url} | description={description}");
-        println!("target_group={target_group:?}");
-        println!("filename={filename:?}");
-        println!("raw_url={raw_url:?}");
-        println!("timestamp_log={timestamp_log:?}");
-
-        // Description contains: [arm-14] CI Log for nuttx @ 7f84a64109f94787d92c2f44465e43fde6f3d28f / nuttx-apps @ d6edbd0cec72cb44ceb9d0f5b932cbd7a2b96288
-        // Extract the NuttX Hash and the Apps Hash
-        let mut nuttx_hash: Option<&str> = None;
-        let mut apps_hash: Option<&str> = None;
-        let re = Regex::new("nuttx @ ([0-9a-z]+) / nuttx-apps @ ([0-9a-z]+)").unwrap();
-        let caps = re.captures(&description);
-        if let Some(caps) = caps {
-            let nuttx = caps.get(1).unwrap().as_str();
-            let apps = caps.get(2).unwrap().as_str();
-            nuttx_hash = Some(nuttx);  // "7f84a64109f94787d92c2f44465e43fde6f3d28f"
-            apps_hash = Some(apps);  // "d6edbd0cec72cb44ceb9d0f5b932cbd7a2b96288"
-        } else {
-            println!("*** Missing Git Hash: {}", description);
-        }
-        println!("nuttx_hash={nuttx_hash:?}");
-        println!("apps_hash={apps_hash:?}");
-    
-        // Download the Gist
-        let res = reqwest::get(raw_url).await?;
-        // println!("Status: {}", res.status());
-        // println!("Headers:\n{:#?}", res.headers());
-        let body = res.text().await?;
-        // println!("Body:\n{}", body);
-
-        // Process the Build Log
-        process_log(
-            &body, Some(&timestamp_log), &args.user, &args.defconfig, &target_group, url.as_str(), filename,
-            nuttx_hash, apps_hash,
-            None, None, None, None
-        ).await?;
-
-        // Wait a while
-        sleep(Duration::from_secs(1));
-    }
-
-    // Return OK
-    Ok(())
-}
-
-/// Process the GitLab Snippets
-/// https://docs.gitlab.com/ee/api/snippets.html
-async fn process_snippets(args: &Args) -> Result<(), Box<dyn std::error::Error>> {
-    let token = std::env::var("GITLAB_TOKEN")
-        .expect("GITLAB_TOKEN env variable is required");
-    let user = &args.user;
-    let repo = &args.repo;
-    assert_ne!(user, "");
-    assert_ne!(repo, "");
-
-    // Fetch the Latest Snippets, reverse chronological order
-    let client = reqwest::Client::new();
-    let url = format!("https://gitlab.com/api/v4/projects/{user}%2F{repo}/snippets?per_page=100&page=1");
-    let res = client
-        .get(url)
-        .header("PRIVATE-TOKEN", token)
-        .send()
-        .await?;
-    println!("Status: {}", res.status());
-    println!("Headers:\n{:#?}", res.headers());
-    let body = res.text().await?;
-    println!("Body: {body}");
-    let snippets: Value = serde_json::from_str(&body)?;
-
-    // Process Every Snippet:
-    // title: "[arm-02] CI Log for nuttx @ 04815338334e63cd82c38ee12244e54829766e88 / nuttx-apps @ b08c29617bbf1f2c6227f74e23ffdd7706997e0c"
-    // web_url: "https://gitlab.com/lupyuen/nuttx-build-log/-/snippets/4777033"
-    // raw_url: "https://gitlab.com/lupyuen/nuttx-build-log/-/snippets/4777033/raw"
-    // file_name: "ci-arm-02.log"
-    let mut past_filenames = HashSet::<String>::new();
-    for snippet in snippets.as_array().unwrap() {
-        println!("snippet={snippet}");
-        let description = snippet["title"].as_str().unwrap_or("<No description>");
-        let url = snippet["web_url"].as_str().unwrap();
-        let raw_url = snippet["raw_url"].as_str().unwrap();
-        let timestamp_log = snippet["created_at"].as_str().unwrap();
-        let filename = snippet["file_name"].as_str().unwrap_or("no_filename");
-        if !filename.starts_with("ci-") {
-            println!("*** Not A Build Log: {url}");
-            continue;
-        }
-        let target_group = filename
-            .replace("ci-", "")
-            .replace(".log", "");  // "arm-04"
-
-        // Skip the filenames we've seen before
-        // Except "ci-unknown.log" for Build Rewind
-        if past_filenames.contains(filename)
-            && !filename.contains("unknown") {
-            println!("*** Skipping File {filename}: {url}");
-            continue;
-        }
-        past_filenames.insert(filename.into());
-
-        // Description contains: [arm-14] CI Log for nuttx @ 7f84a64109f94787d92c2f44465e43fde6f3d28f / nuttx-apps @ d6edbd0cec72cb44ceb9d0f5b932cbd7a2b96288
-        // Extract the NuttX Hash and the Apps Hash
-        let mut nuttx_hash: Option<&str> = None;
-        let mut apps_hash: Option<&str> = None;
-        let re = Regex::new("nuttx @ ([0-9a-z]+) / nuttx-apps @ ([0-9a-z]+)").unwrap();
-        let caps = re.captures(description);
-        if let Some(caps) = caps {
-            let nuttx = caps.get(1).unwrap().as_str();
-            let apps = caps.get(2).unwrap().as_str();
-            nuttx_hash = Some(nuttx);  // "7f84a64109f94787d92c2f44465e43fde6f3d28f"
-            apps_hash = Some(apps);  // "d6edbd0cec72cb44ceb9d0f5b932cbd7a2b96288"
-        } else {
-            println!("*** Missing Git Hash: {}", description);
-        }
-        println!("nuttx_hash={nuttx_hash:?}");
-        println!("apps_hash={apps_hash:?}");
-        println!("timestamp_log={timestamp_log:?}");
-    
-        // Download the Gist
-        let res = reqwest::get(raw_url).await?;
-        // println!("Status: {}", res.status());
-        // println!("Headers:\n{:#?}", res.headers());
-        let body = res.text().await?;
-        // println!("Body:\n{}", body);
-
-        // Process the Build Log
-        process_log(
-            &body, Some(timestamp_log), &args.user, &args.defconfig, &target_group, url, filename,
-            nuttx_hash, apps_hash,
-            None, None, None, None
-        ).await?;
-
-        // Wait a while
-        sleep(Duration::from_secs(10));
-    }
-    Ok(())
+    process_file(&args).await?;
+    return Ok(());
 }
 
 /// Process the Log File downloaded from GitHub Actions
@@ -691,25 +494,25 @@ async fn post_to_pushgateway(
         else { timestamp };
 
     // Compose the Pushgateway Metric
-    let body = format!(
-r##"
-# TYPE build_score gauge
-# HELP build_score 1.0 for successful build, 0.0 for failed build
-build_score{{ version="{version}", timestamp="{timestamp}", timestamp_log="{timestamp_log}", user="{user}", arch="{arch}", subarch="{subarch}", group="{group}", board="{board}", config="{config}", target="{target}", url="{url}", url_display="{url_display}"{msg_opt}{nuttx_hash_opt}{apps_hash_opt}{prev_opt}{next_opt} }} {build_score}
-"##);
-    println!("body={body}");
-    let client = reqwest::Client::new();
-    let pushgateway = format!("http://localhost:9091/metrics/job/{user}/instance/{target_rewind}");
-    let res = client
-        .post(pushgateway)
-        .body(body)
-        .send()
-        .await?;
-    println!("res={res:?}");
-    if !res.status().is_success() {
-        println!("*** Pushgateway Failed");
-        sleep(Duration::from_secs(1));
-    }
+    //     let body = format!(
+    // r##"
+    // # TYPE build_score gauge
+    // # HELP build_score 1.0 for successful build, 0.0 for failed build
+    // build_score{{ version="{version}", timestamp="{timestamp}", timestamp_log="{timestamp_log}", user="{user}", arch="{arch}", subarch="{subarch}", group="{group}", board="{board}", config="{config}", target="{target}", url="{url}", url_display="{url_display}"{msg_opt}{nuttx_hash_opt}{apps_hash_opt}{prev_opt}{next_opt} }} {build_score}
+    // "##);
+    //     println!("body={body}");
+    //     let client = reqwest::Client::new();
+    //     let pushgateway = format!("http://localhost:9091/metrics/job/{user}/instance/{target_rewind}");
+    //     let res = client
+    //         .post(pushgateway)
+    //         .body(body)
+    //         .send()
+    //         .await?;
+    //     println!("res={res:?}");
+    //     if !res.status().is_success() {
+    //         println!("*** Pushgateway Failed");
+    //         sleep(Duration::from_secs(1));
+    //     }
     Ok(())
 }
 
