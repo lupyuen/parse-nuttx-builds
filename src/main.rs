@@ -308,15 +308,29 @@ async fn process_target(
             line.starts_with("/usr/bin/bash: line 1: arm-nuttx-elf-gcc: command not found") ||  // "/usr/bin/bash: line 1: arm-nuttx-elf-gcc: command not found"
             line.starts_with("/usr/bin/bash: line 1: arm-nuttx-eabi-gcc: command not found") ||  // "/usr/bin/bash: line 1: arm-nuttx-eabi-gcc: command not found \n /usr/bin/bash: line 1: arm-nuttx-eabi-gcc: command not found"
             line.starts_with("arm-none-eabi-ld: warning: /github/workspace/sources") ||  // "arm-none-eabi-ld: warning: /github/workspace/sources/apps/bin/errno has a LOAD segment with RWX permissions"
+            line.starts_with("aarch64-none-elf-ld: warning: nuttx_user has a LOAD segment with RWX permissions") ||  // "aarch64-none-elf-ld: warning: nuttx_user has a LOAD segment with RWX permissions"
             line.starts_with("riscv-none-elf-ld: warning: /github/workspace/sources") ||  // "riscv-none-elf-ld: warning: /github/workspace/sources/nuttx/nuttx has a LOAD segment with RWX permissions"
             (line.starts_with("riscv-none-elf-strip") && line.contains("adjusted to")) ||  // "riscv-none-elf-strip: /github/workspace/sources/apps/bin/stO9cKyM: section .fini_array lma 0xc0101009 adjusted to 0xc010100c \n riscv-none-elf-strip: /github/workspace/sources/apps/bin/stlUMDKA: section .fini_array lma 0xc0101279 adjusted to 0xc010127c \n riscv-none-elf-strip: /github/workspace/sources/apps/bin/stqCsC2h: section .fini_array lma 0xc0101279 adjusted to 0xc010127c"
             (line.starts_with("arm-none-eabi-objcopy") && line.contains("adjusted to")) ||  // "arm-none-eabi-objcopy: /github/workspace/sources/nuttx/stbSLcmg: section .bss lma 0x66d7e0 adjusted to 0x6707e0 \n arm-none-eabi-objcopy: /github/workspace/sources/nuttx/nuttx: warning: empty loadable segment detected at vaddr=0x40200000, is this intentional?"
             (line.starts_with("arm-none-eabi-objcopy") && line.contains("empty loadable segment")) ||  // "arm-none-eabi-objcopy: /github/workspace/sources/nuttx/nuttx: warning: empty loadable segment detected at vaddr=0x40200000, is this intentional?"
+            line.starts_with("lto-wrapper: warning: Extra option to '-Xassembler'") ||  // "lto-wrapper: warning: Extra option to '-Xassembler': -mthumb, dropping all '-Xassembler' and '-Wa' options."
+            line.starts_with("lto-wrapper: warning: using serial compilation") ||  // "lto-wrapper: warning: using serial compilation of 2 LTRANS jobs"
+            line.starts_with("lto-wrapper: note: see the '-flto'") ||  // "lto-wrapper: note: see the '-flto' option documentation for more information"
             line.contains("given more than once in the same rule") ||  // "Makefile:169: target 'arm_perf.o' given more than once in the same rule \n Makefile:169: target 'arm_perf.o' given more than once in the same rule \n Makefile:169: target 'arm_perf.o' given more than once in the same rule \n Makefile:169: target 'arm_perf.o' given more than once in the same rule \n Makefile:169: target 'arm_perf.o' given more than once in the same rule \n Makefile:169: target 'arm_perf.o' given more than once in the same rule"
             line.starts_with("diff: args.gn") ||  // "diff: args.gn: No such file or directory"
             line.starts_with("Note: skipping refresh") ||  // "Note: skipping refresh for debug defconfig."
+            // Begin USE_LEGACY_PINMAP
             line.contains("USE_LEGACY_PINMAP will be deprecated") ||  // "44 | #  pragma message \"CONFIG_STM32_USE_LEGACY_PINMAP will be deprecated migrate board.h see tools/stm32_pinmap_tool.py\"
             line == "|           ^~~~~~~" ||  // "|           ^~~~~~~"
+            line == "|           ^" ||  // "|           ^"
+            line == "1 warning generated." ||  // "1 warning generated."
+            // End USE_LEGACY_PINMAP
+            // Begin sim:sqlite
+            line.starts_with("configure: WARNING: Can't find Tcl configuration") ||  // "configure: WARNING: Can't find Tcl configuration definitions"
+            line.starts_with("configure: WARNING: *** Without Tcl") ||  // "configure: WARNING: *** Without Tcl the regression tests cannot be executed ***"
+            line.starts_with("configure: WARNING: *** Consider using --with-tcl") ||  // "configure: WARNING: *** Consider using --with-tcl=... to define location of Tcl ***"
+            line.starts_with("make[4]: warning: -j0 forced in submake") ||  // "make[4]: warning: -j0 forced in submake: resetting jobserver mode."
+            // End sim:sqlite
             // Begin NTFC
             line.starts_with("Running NuttX...") ||  // "Running NuttX..."
             line.starts_with("++ pwd") ||  // "++ pwd"
