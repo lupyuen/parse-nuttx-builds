@@ -494,13 +494,14 @@ async fn post_to_pushgateway(
         else { timestamp };
 
     // Compose the Pushgateway Metric
-    //     let body = format!(
-    // r##"
-    // # TYPE build_score gauge
-    // # HELP build_score 1.0 for successful build, 0.0 for failed build
-    // build_score{{ version="{version}", timestamp="{timestamp}", timestamp_log="{timestamp_log}", user="{user}", arch="{arch}", subarch="{subarch}", group="{group}", board="{board}", config="{config}", target="{target}", url="{url}", url_display="{url_display}"{msg_opt}{nuttx_hash_opt}{apps_hash_opt}{prev_opt}{next_opt} }} {build_score}
-    // "##);
-    //     println!("body={body}");
+    let body = format!(
+r##"
+# TYPE build_score gauge
+# HELP build_score 1.0 for successful build, 0.0 for failed build
+build_score{{ version="{version}", timestamp="{timestamp}", timestamp_log="{timestamp_log}", user="{user}", arch="{arch}", subarch="{subarch}", group="{group}", board="{board}", config="{config}", target="{target}", url="{url}", url_display="{url_display}"{msg_opt}{nuttx_hash_opt}{apps_hash_opt}{prev_opt}{next_opt} }} {build_score}
+"##);
+    println!("body={body}");
+
     //     let client = reqwest::Client::new();
     //     let pushgateway = format!("http://localhost:9091/metrics/job/{user}/instance/{target_rewind}");
     //     let res = client
