@@ -1,6 +1,4 @@
-//! We prefer GitLab Snippets, since GitHub Gists will get blocked for overuse.
-//! Fetch the Latest GitLab Snippets / GitHub Gists by User:
-//! (1) Process the Build Log
+//! (1) Process the Build Log from GitHub Actions
 //! (2) Process each Build Target
 //! (3) Post to Prometheus Pushgateway
 
