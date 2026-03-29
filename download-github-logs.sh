@@ -1,5 +1,17 @@
 #!/usr/bin/env bash
-## Download all the GitHub Actions Logs
+## Download and Parse all the GitHub Actions Logs
+
+## For Testing: NuttX
+## user=apache
+## repo=nuttx
+## run_id=23653869993  ## sim-02:sim:login: >>>> WARNING: YOU ARE USING DEFAULT PASSWORD KEYS (CONFIG_FSUTILS_PASSWD_KEY1-4)!!! PLEASE CHANGE IT!!! <<<< \n 17d16 \n < CONFIG_BOARD_ETC_ROMFS_PASSWD_PASSWORD=\"Administrator\" \n Saving the new configuration file
+## run_id=23669957941  ## Successful
+## run_id=23679432579  ## Test Retry
+
+## For Testing: NuttX Apps
+## user=apache
+## repo=nuttx-apps
+## run_id=23636620855
 
 ## Set the GitHub Token: export GITHUB_TOKEN=...
 ## Any Token with Read-Access to NuttX Repo will do:
@@ -14,17 +26,26 @@ msys2_step=9  ## TODO: Step may change for msys2 Builds
 nuttx_hash=master
 apps_hash=master
 
-## For Testing: NuttX
-user=apache
-repo=nuttx
-run_id=23653869993  ## sim-02:sim:login: >>>> WARNING: YOU ARE USING DEFAULT PASSWORD KEYS (CONFIG_FSUTILS_PASSWD_KEY1-4)!!! PLEASE CHANGE IT!!! <<<< \n 17d16 \n < CONFIG_BOARD_ETC_ROMFS_PASSWD_PASSWORD=\"Administrator\" \n Saving the new configuration file
-run_id=23669957941  ## Successful
-run_id=23679432579  ## Test Retry
+## First Parameter is Repo Owner
+user=$1
+if [[ "$user" == "" ]]; then
+  echo "ERROR: Repo Owner Parameter is missing (e.g. apache)"
+  exit 1
+fi
 
-## For Testing: NuttX Apps
-# user=apache
-# repo=nuttx-apps
-# run_id=23636620855
+## Second Parameter is Repo Name
+repo=$2
+if [[ "$repo" == "" ]]; then
+  echo "ERROR: Repo Name Parameter is missing (e.g. nuttx or nuttx-apps)"
+  exit 1
+fi
+
+## Third Parameter is Run ID
+run_id=$3
+if [[ "$run_id" == "" ]]; then
+  echo "ERROR: Run ID Parameter is missing (e.g. 23669957941)"
+  exit 1
+fi
 
 ## Generate the list of deconfigs
 defconfig=/tmp/defconfig-github.txt
@@ -64,16 +85,11 @@ function ingest_log {
   local filename="ci-$group.log"
   local pathname="$tmp_path/$filename"
 
-  ## For Testing
-  local linenum=83
-  local url="https://github.com/$user/$repo/actions/runs/$run_id/job/$job_id#step:$step:$linenum"
-
   ## Remove the Timestamp Column
   cat "$log_file" \
     | colrm 1 29 \
     > $pathname
   head -n 100 $pathname
-  set +x ; echo url=$url ; set -x
 
   ## Ingest the Log File
   cargo run -- \
@@ -423,9 +439,5 @@ function dump_repo {
   done
 }
 
+## Dump the PRs, Jobs and Durations for the NuttX Repo and NuttX Apps Repo
 dump_repo
-
-## For Testing
-# date=$(date -u +'%Y-%m-%d')
-# run_id=22837803838 ## From databaseId
-# repo=apache/nuttx
