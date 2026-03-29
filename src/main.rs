@@ -554,7 +554,8 @@ async fn post_to_pushgateway(
     // Join the messages
     let mut msg_join = msg
         .join(" \\n ")
-        .replace("\"", "\\\"");
+        .replace("\"", "\\\"")
+        .replace("\\ ", " ");
 
     // If messages contain CI Test "test_helloxx FAILED"
     // Then remove the non-failed messages
@@ -565,7 +566,8 @@ async fn post_to_pushgateway(
             .filter(|s| s.contains(" FAILED"))
             .collect::<Vec<_>>()
             .join(" \\n ")
-            .replace("\"", "\\\"");                
+            .replace("\"", "\\\"")
+            .replace("\\ ", " ");
     }
 
     // Truncate the message to fit into Prometheus
