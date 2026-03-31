@@ -260,7 +260,7 @@ async fn process_target(
             line.starts_with("Normalize") ||
             line.starts_with("[1/1] Normalize") ||  // "[1/1] Normalize linum-stm32h753bi/nsh"
             line.replace(" ", "").starts_with("%Tota") ||  // "% Tot al      % Re ceived % Xferd  Average Speed   Time    Time     Time  Current"
-            line.starts_with("%%  TToott") ||  // "%%  TToottaall        % %R eRceecieveidv e%d  X%f eXrfde r Adv e rAavgeer aSgpee eSdp e  eTdi m e  T i m eT i m e  T i  m eT i m e    TCiumrer e nCtu \n r r e n t \n -:- \n - : -0-   -  - :0- - : - -0  -  - : -0- :- -   0        0 0      0      0 --:--:-- --:--:-- --:--:--     0"
+            line.contains("TToott") ||  // "%%  TToottaall        % %R eRceecieveidv e%d  X%f eXrfde r Adv e rAavgeer aSgpee eSdp e  eTdi m e  T i m eT i m e  T i  m eT i m e    TCiumrer e nCtu \n r r e n t \n -:- \n - : -0-   -  - :0- - : - -0  -  - : -0- :- -   0        0 0      0      0 --:--:-- --:--:-- --:--:--     0"
             line.contains("-:--:-") ||  // "- --:--:-- --:--:--  817k"
             line.starts_with("Dload") ||
             (line.contains("Dload") && line.contains("Upload") && line.contains("Total")) ||  // "-:--:--     0               Dload  Upload   Total   Spent    Left  Speed"
@@ -328,6 +328,7 @@ async fn process_target(
             line.starts_with("diff: args.gn") ||  // "diff: args.gn: No such file or directory"
             line.starts_with("Note: skipping refresh") ||  // "Note: skipping refresh for debug defconfig."
             line.starts_with("warning: failed to connect to jobserver from environment variable") ||  // "warning: failed to connect to jobserver from environment variable `MAKEFLAGS=\"ks -j4 --jobserver-auth=3,4 --no-print-directory -- APPDIR=/github/workspace/sources/apps EXTRAFLAGS=-Wno-cpp -Werror\"`: cannot open file descriptor 3 from the jobserver environment variable value: Bad file descriptor (os error 9) \n | \n = note: the build environment is likely misconfigured"
+            line.starts_with("| \n = note: the build environment is likely misconfigured") ||  // "| \n = note: the build environment is likely misconfigured"
             line.starts_with("+ '[' -d /github/workspace/sources/tools/ccache") ||  // "+ '[' -d /github/workspace/sources/tools/ccache ']' \n + ccache -s"
             // Begin USE_LEGACY_PINMAP
             line.contains("USE_LEGACY_PINMAP will be deprecated") ||  // "44 | #  pragma message \"CONFIG_STM32_USE_LEGACY_PINMAP will be deprecated migrate board.h see tools/stm32_pinmap_tool.py\"
@@ -402,6 +403,7 @@ async fn process_target(
             line.starts_with("+ deactivate") ||  // "+ deactivate"
             line.starts_with("'4 -machine") ||  // "'4 -machine '"
             line.starts_with("++ deactivate nondestructive") ||  // "++ deactivate nondestructive \n ++ '[' -n '' ']' \n ++ '[' -n '' ']' \n ++ '[' -n /usr/bin/bash -o -n '' ']' \n ++ hash -r \n ++ '[' -n '' ']' \n ++ unset VIRTUAL_ENV \n ++ unset VIRTUAL_ENV_PROMPT \n ++ '[' '!' nondestructive = nondestructive ']' \n ++ VIRTUAL_ENV=/github/workspace/nuttx-ntfc/venv \n ++ export VIRTUAL_ENV \n ++ _OLD_VIRTUAL_PATH=/tools/ccache/bin:/tools/gn:/tools/picotool:/tools/wamr:/tools/xtensa-esp-elf-gcc/bin:/tools/sparc-gaisler-elf-gcc/bin:/tools/riscv-none-elf-gcc/bin:/tools/renesas"
+            line.starts_with("+ ccache -s") ||  // "+ ccache -s"
             // End NTFC
             // Begin qemu-armv8a:xedge_demo
             line.starts_with("Note: switching to") ||  // "Note: switching to '227a4b998300fa4cfde871dc7dac92c09e1636c2'."
