@@ -329,6 +329,7 @@ async fn process_target(
             line.starts_with("Note: skipping refresh") ||  // "Note: skipping refresh for debug defconfig."
             line.starts_with("warning: failed to connect to jobserver from environment variable") ||  // "warning: failed to connect to jobserver from environment variable `MAKEFLAGS=\"ks -j4 --jobserver-auth=3,4 --no-print-directory -- APPDIR=/github/workspace/sources/apps EXTRAFLAGS=-Wno-cpp -Werror\"`: cannot open file descriptor 3 from the jobserver environment variable value: Bad file descriptor (os error 9) \n | \n = note: the build environment is likely misconfigured"
             line.contains("build environment is likely misconfigured") ||  // "| \n = note: the build environment is likely misconfigured"
+            line == "|" ||  // "| \n = note: the build environment is likely misconfigured"
             line.starts_with("+ '[' -d /github/workspace/sources/tools/ccache") ||  // "+ '[' -d /github/workspace/sources/tools/ccache ']' \n + ccache -s"
             // Begin USE_LEGACY_PINMAP
             line.contains("USE_LEGACY_PINMAP will be deprecated") ||  // "44 | #  pragma message \"CONFIG_STM32_USE_LEGACY_PINMAP will be deprecated migrate board.h see tools/stm32_pinmap_tool.py\"
