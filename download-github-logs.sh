@@ -57,6 +57,7 @@ function ingest_log {
   local step=$2 ## "10" or "9"
   local group=$3 ## "arm-01"
   local job_name="$os ($group)"
+  set +x  ## Don't Echo commands
   local job_id=$(
     curl -L \
       -H "Accept: application/vnd.github+json" \
@@ -67,6 +68,7 @@ function ingest_log {
       # | jq ".jobs | map(select(.id == $job_id)) | .[].name"
       # | jq ".jobs[].id,.jobs[].name"
   )
+  set -x  ## Echo commands
   set +x ; echo job_id=$job_id ; set -x
   if [[ "$job_id" == "" ]]; then
     set +x ; echo "**** Job ID missing for Run ID $run_id, Job Name $job_name" ; set -x
@@ -107,12 +109,14 @@ function ingest_log {
 
 ## Download the Run Logs
 ## https://docs.github.com/en/rest/actions/workflow-runs?apiVersion=2022-11-28#download-workflow-run-logs
+set +x  ## Don't Echo commands
 curl -L \
   --output /tmp/run-log.zip \
   -H "Accept: application/vnd.github+json" \
   -H "Authorization: Bearer $GITHUB_TOKEN" \
   -H "X-GitHub-Api-Version: 2022-11-28" \
   https://api.github.com/repos/$user/$repo/actions/runs/$run_id/logs
+set -x  ## Echo commands
 
 ## Unzip the Log Files
 tmp_path=/tmp/download-github-logs
