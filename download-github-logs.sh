@@ -66,7 +66,6 @@ function ingest_log {
   set +x ; echo job_id=$job_id ; set -x
   if [[ "$job_id" == "" ]]; then
     set +x ; echo "**** Job ID missing for Run ID $run_id, Job Name $job_name" ; set -x
-    sleep 1
     return
   fi
 
