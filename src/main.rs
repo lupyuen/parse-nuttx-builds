@@ -260,7 +260,10 @@ async fn process_target(
             line.starts_with("Normalize") ||
             line.starts_with("[1/1] Normalize") ||  // "[1/1] Normalize linum-stm32h753bi/nsh"
             line.replace(" ", "").starts_with("%Tota") ||  // "% Tot al      % Re ceived % Xferd  Average Speed   Time    Time     Time  Current"
+            line.starts_with("%%  TToott") ||  // "%%  TToottaall        % %R eRceecieveidv e%d  X%f eXrfde r Adv e rAavgeer aSgpee eSdp e  eTdi m e  T i m eT i m e  T i  m eT i m e    TCiumrer e nCtu \n r r e n t \n -:- \n - : -0-   -  - :0- - : - -0  -  - : -0- :- -   0        0 0      0      0 --:--:-- --:--:-- --:--:--     0"
+            line.contains("-:--:-") ||  // "- --:--:-- --:--:--  817k"
             line.starts_with("Dload") ||
+            (line.contains("Dload") && line.contains("Upload") && line.contains("Total")) ||  // "-:--:--     0               Dload  Upload   Total   Spent    Left  Speed"
             line.starts_with("~/apps") ||
             line.starts_with("~/nuttx") ||
             line.starts_with("find: 'boards/") ||  // "find: 'boards/risc-v/q[0-d]*': No such file or directory"
@@ -311,6 +314,7 @@ async fn process_target(
             line.starts_with("arm-none-eabi-ld: warning: /github/workspace/sources") ||  // "arm-none-eabi-ld: warning: /github/workspace/sources/apps/bin/errno has a LOAD segment with RWX permissions"
             line.starts_with("aarch64-none-elf-ld: warning: nuttx_user has a LOAD segment with RWX permissions") ||  // "aarch64-none-elf-ld: warning: nuttx_user has a LOAD segment with RWX permissions"
             line.starts_with("riscv-none-elf-ld: warning: /github/workspace/sources") ||  // "riscv-none-elf-ld: warning: /github/workspace/sources/nuttx/nuttx has a LOAD segment with RWX permissions"
+            line.starts_with("/tools/xtensa-esp-elf-gcc/bin/xtensa-esp-elf-ld: warning: /github/workspace/sources/nuttx/nuttx has a LOAD segment with RWX permissions") ||  // "/tools/xtensa-esp-elf-gcc/bin/xtensa-esp-elf-ld: warning: /github/workspace/sources/nuttx/nuttx has a LOAD segment with RWX permissions"
             line.starts_with("/tools/gcc-arm-none-eabi/bin/../lib/gcc/arm-none-eabi/13.2.1/../../../../arm-none-eabi/bin/ld: warning: /github/workspace/sources/nuttx/nuttx has a LOAD segment with RWX permissions") ||  // "/tools/gcc-arm-none-eabi/bin/../lib/gcc/arm-none-eabi/13.2.1/../../../../arm-none-eabi/bin/ld: warning: /github/workspace/sources/nuttx/nuttx has a LOAD segment with RWX permissions"
             (line.starts_with("riscv-none-elf-strip") && line.contains("adjusted to")) ||  // "riscv-none-elf-strip: /github/workspace/sources/apps/bin/stO9cKyM: section .fini_array lma 0xc0101009 adjusted to 0xc010100c \n riscv-none-elf-strip: /github/workspace/sources/apps/bin/stlUMDKA: section .fini_array lma 0xc0101279 adjusted to 0xc010127c \n riscv-none-elf-strip: /github/workspace/sources/apps/bin/stqCsC2h: section .fini_array lma 0xc0101279 adjusted to 0xc010127c"
             (line.starts_with("arm-none-eabi-objcopy") && line.contains("adjusted to")) ||  // "arm-none-eabi-objcopy: /github/workspace/sources/nuttx/stbSLcmg: section .bss lma 0x66d7e0 adjusted to 0x6707e0 \n arm-none-eabi-objcopy: /github/workspace/sources/nuttx/nuttx: warning: empty loadable segment detected at vaddr=0x40200000, is this intentional?"
@@ -323,6 +327,8 @@ async fn process_target(
             line.contains("given more than once in the same rule") ||  // "Makefile:169: target 'arm_perf.o' given more than once in the same rule \n Makefile:169: target 'arm_perf.o' given more than once in the same rule \n Makefile:169: target 'arm_perf.o' given more than once in the same rule \n Makefile:169: target 'arm_perf.o' given more than once in the same rule \n Makefile:169: target 'arm_perf.o' given more than once in the same rule \n Makefile:169: target 'arm_perf.o' given more than once in the same rule"
             line.starts_with("diff: args.gn") ||  // "diff: args.gn: No such file or directory"
             line.starts_with("Note: skipping refresh") ||  // "Note: skipping refresh for debug defconfig."
+            line.starts_with("warning: failed to connect to jobserver from environment variable") ||  // "warning: failed to connect to jobserver from environment variable `MAKEFLAGS=\"ks -j4 --jobserver-auth=3,4 --no-print-directory -- APPDIR=/github/workspace/sources/apps EXTRAFLAGS=-Wno-cpp -Werror\"`: cannot open file descriptor 3 from the jobserver environment variable value: Bad file descriptor (os error 9) \n | \n = note: the build environment is likely misconfigured"
+            line.starts_with("+ '[' -d /github/workspace/sources/tools/ccache") ||  // "+ '[' -d /github/workspace/sources/tools/ccache ']' \n + ccache -s"
             // Begin USE_LEGACY_PINMAP
             line.contains("USE_LEGACY_PINMAP will be deprecated") ||  // "44 | #  pragma message \"CONFIG_STM32_USE_LEGACY_PINMAP will be deprecated migrate board.h see tools/stm32_pinmap_tool.py\"
             line == "|           ^~~~~~~" ||  // "|           ^~~~~~~"
@@ -395,6 +401,7 @@ async fn process_target(
             line.starts_with("+ source /github/workspace/nuttx-ntfc") ||  // "+ source /github/workspace/nuttx-ntfc/venv/bin/activate"
             line.starts_with("+ deactivate") ||  // "+ deactivate"
             line.starts_with("'4 -machine") ||  // "'4 -machine '"
+            line.starts_with("++ deactivate nondestructive") ||  // "++ deactivate nondestructive \n ++ '[' -n '' ']' \n ++ '[' -n '' ']' \n ++ '[' -n /usr/bin/bash -o -n '' ']' \n ++ hash -r \n ++ '[' -n '' ']' \n ++ unset VIRTUAL_ENV \n ++ unset VIRTUAL_ENV_PROMPT \n ++ '[' '!' nondestructive = nondestructive ']' \n ++ VIRTUAL_ENV=/github/workspace/nuttx-ntfc/venv \n ++ export VIRTUAL_ENV \n ++ _OLD_VIRTUAL_PATH=/tools/ccache/bin:/tools/gn:/tools/picotool:/tools/wamr:/tools/xtensa-esp-elf-gcc/bin:/tools/sparc-gaisler-elf-gcc/bin:/tools/riscv-none-elf-gcc/bin:/tools/renesas"
             // End NTFC
             // Begin qemu-armv8a:xedge_demo
             line.starts_with("Note: switching to") ||  // "Note: switching to '227a4b998300fa4cfde871dc7dac92c09e1636c2'."
@@ -554,8 +561,8 @@ async fn post_to_pushgateway(
     // Join the messages
     let mut msg_join = msg
         .join(" \\n ")
-        .replace("\"", "\\\"")
-        .replace("\\ ", " ");
+        .replace("\\", "\\\\")
+        .replace("\\\\n", "\\n");
 
     // If messages contain CI Test "test_helloxx FAILED"
     // Then remove the non-failed messages
@@ -566,8 +573,8 @@ async fn post_to_pushgateway(
             .filter(|s| s.contains(" FAILED"))
             .collect::<Vec<_>>()
             .join(" \\n ")
-            .replace("\"", "\\\"")
-            .replace("\\ ", " ");
+            .replace("\\", "\\\\")
+            .replace("\\\\n", "\\n");
     }
 
     // Truncate the message to fit into Prometheus
