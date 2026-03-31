@@ -7,6 +7,7 @@
 ## run_id=23653869993  ## sim-02:sim:login: >>>> WARNING: YOU ARE USING DEFAULT PASSWORD KEYS (CONFIG_FSUTILS_PASSWD_KEY1-4)!!! PLEASE CHANGE IT!!! <<<< \n 17d16 \n < CONFIG_BOARD_ETC_ROMFS_PASSWD_PASSWORD=\"Administrator\" \n Saving the new configuration file
 ## run_id=23669957941  ## Successful
 ## run_id=23679432579  ## Test Retry
+## ./download-github-logs.sh apache nuttx 23679432579
 
 ## For Testing: NuttX Apps
 ## user=apache
@@ -57,25 +58,17 @@ function ingest_log {
   local step=$2 ## "10" or "9"
   local group=$3 ## "arm-01"
   local job_name="$os ($group)"
-  set +x  ## Don't Echo commands
+
   local job_id=$(
-    curl -L \
-      -H "Accept: application/vnd.github+json" \
-      -H "Authorization: Bearer $GITHUB_TOKEN" \
-      -H "X-GitHub-Api-Version: 2022-11-28" \
-      https://api.github.com/repos/$user/$repo/actions/runs/$run_id/jobs?per_page=100 \
-      | jq ".jobs | map(select(.name == \"$job_name\")) | .[].id"
-      # | jq ".jobs | map(select(.id == $job_id)) | .[].name"
-      # | jq ".jobs[].id,.jobs[].name"
+    cat $jobs_path \
+    | jq ".jobs | map(select(.name == \"$job_name\")) | .[].id"
   )
-  set -x  ## Echo commands
   set +x ; echo job_id=$job_id ; set -x
   if [[ "$job_id" == "" ]]; then
     set +x ; echo "**** Job ID missing for Run ID $run_id, Job Name $job_name" ; set -x
-    sleep 01
+    sleep 1
     return
   fi
-  sleep 1
 
   ## log_file looks like /tmp/ingest-nuttx-builds/33_Linux (arm-01).txt
   ## Or /tmp/ingest-nuttx-builds/6_msys2 (msys2).txt
@@ -107,6 +100,20 @@ function ingest_log {
     --step $step
 }
 
+## Fetch the Jobs for the Run ID
+tmp_path=/tmp/download-github-logs
+rm -rf $tmp_path
+mkdir $tmp_path
+jobs_path=$tmp_path/jobs.json
+set +x  ## Don't Echo commands
+curl -L \
+  -H "Accept: application/vnd.github+json" \
+  -H "Authorization: Bearer $GITHUB_TOKEN" \
+  -H "X-GitHub-Api-Version: 2022-11-28" \
+  https://api.github.com/repos/$user/$repo/actions/runs/$run_id/jobs?per_page=100 \
+  > $jobs_path
+set -x  ## Echo commands
+
 ## Download the Run Logs
 ## https://docs.github.com/en/rest/actions/workflow-runs?apiVersion=2022-11-28#download-workflow-run-logs
 set +x  ## Don't Echo commands
@@ -119,9 +126,6 @@ curl -L \
 set -x  ## Echo commands
 
 ## Unzip the Log Files
-tmp_path=/tmp/download-github-logs
-rm -rf $tmp_path
-mkdir $tmp_path
 pushd $tmp_path
 set +e  #  Ignore unzip warnings: "warning:  stripped absolute path spec from /system.txt"
 unzip /tmp/run-log.zip
