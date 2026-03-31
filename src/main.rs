@@ -462,11 +462,12 @@ async fn process_target(
     let config = target_split[1];
     let board_config = format!("/{board}/configs/{config}/defconfig");
     let contains_error = contains_error ||
-    (
-        msg_join.contains("modified:") &&
-        msg_join.contains("boards/") &&
-        msg_join.contains(board_config.as_str())
-    );
+        msg_join.contains("< CONFIG_") || // "24,26d23 \n < CONFIG_EXAMPLES_PWM_DEVPATH=\"/dev/pwm0\" \n < CONFIG_EXAMPLES_PWM_DUTYPCT=50 \n < CONFIG_EXAMPLES_PWM_DURATION=5 \n 33d29 \n < CONFIG_HT32F491X3_TMR3_CHANNEL=1 \n Saving the new configuration file"
+        (
+            msg_join.contains("modified:") &&
+            msg_join.contains("boards/") &&
+            msg_join.contains(board_config.as_str())
+        );
     if group == "unknown" && contains_error { println!("contains_error3: msg_join=\n{msg_join}"); }
 
     // Search for Warnings
