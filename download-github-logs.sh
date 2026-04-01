@@ -49,6 +49,7 @@ if [[ "$run_id" == "" ]]; then
 fi
 
 ## Generate the list of deconfigs
+pushd $HOME/riscv/nuttx ; git pull ; popd
 defconfig=/tmp/defconfig-github.txt
 find $HOME/riscv/nuttx -name defconfig >$defconfig
 
