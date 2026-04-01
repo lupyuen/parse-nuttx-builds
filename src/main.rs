@@ -564,10 +564,7 @@ async fn post_to_pushgateway(
 
     // Join the messages
     let mut msg_join = msg
-        .join(" \\n ")
-        .replace("\\", "\\\\")
-        .replace("\\\\n", "\\n")
-        .replace("\"", "\\\"");
+        .join(" \\n ");
 
     // If messages contain CI Test "test_helloxx FAILED"
     // Then remove the non-failed messages
@@ -577,13 +574,11 @@ async fn post_to_pushgateway(
             .copied()
             .filter(|s| s.contains(" FAILED"))
             .collect::<Vec<_>>()
-            .join(" \\n ")
-            .replace("\\", "\\\\")
-            .replace("\\\\n", "\\n")
-            .replace("\"", "\\\"");
+            .join(" \\n ");
     }
 
     // Truncate the message to fit into Prometheus
+    msg_join = sanitize_text(&msg_join);
     msg_join.truncate(512);
     let msg_opt =
         if msg.is_empty() { "".into() }
@@ -762,4 +757,12 @@ async fn get_sub_arch(defconfig: &str, target: &str) -> Result<String, Box<dyn s
         }
     }
     Ok("unknown".into())
+}
+
+/// Escape any special characters in JSON string
+fn sanitize_text(s: &str) -> String {
+    s.replace("\\", "\\\\")
+    .replace("\\\\n", "\\n")
+    .replace("\"", "\\\"")
+    .replace("\x1b", "")
 }
