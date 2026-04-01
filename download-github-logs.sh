@@ -79,6 +79,12 @@ function ingest_log {
   local filename="ci-$group.log"
   local pathname="$tmp_path/$filename"
 
+  ## If pathname doesn't exist, quit
+  if [[ ! -f "$log_file" ]]; then
+    set +x ; echo "**** Log File missing for Run ID $run_id, Job Name $job_name, Expected Path $log_file" ; set -x
+    return
+  fi
+
   ## Remove the Timestamp Column
   cat "$log_file" \
     | colrm 1 29 \
