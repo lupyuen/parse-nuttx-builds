@@ -374,7 +374,7 @@ async fn process_target(
             line.starts_with("'chardev") ||  // "'chardev:con -mon '"
             line.starts_with("'include_module':") ||  // "'include_module': [],"
             line.starts_with("'order':") ||  // "'order': []}}"
-            line.contains("[1m============================= test session starts") ||  // "[1m============================= test session starts ==============================[0m"
+            line.contains("test session starts") ||  // "[1m============================= test session starts ==============================[0m"
             line.starts_with("platform") ||  // "platform linux -- Python 3.10.12, pytest-9.0.2, pluggy-1.6.0"
             line.starts_with("rootdir:") ||  // "rootdir: /github/workspace"
             line.starts_with("plugins:") ||  // "plugins: timeout-2.4.0, dependency-0.6.1, repeat-0.9.1, ordering-0.6, json-0.4.0"
