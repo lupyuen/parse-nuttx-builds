@@ -89,7 +89,7 @@ async fn process_file(args: &Args) -> Result<(), Box<dyn std::error::Error>> {
 
     // Process the truncated Log File
     process_log(
-        &log, None, &args.user, &args.defconfig, &args.group, "", filename,
+        log, None, &args.user, &args.defconfig, &args.group, "", filename,
         Some(&args.nuttx_hash), Some(&args.apps_hash),
         Some(&args.repo), Some(&args.run_id), Some(&args.job_id), Some(&args.step)
     ).await?;
@@ -108,6 +108,7 @@ async fn process_file(args: &Args) -> Result<(), Box<dyn std::error::Error>> {
 ///   Building NuttX...
 ///   Normalize freedom-kl25z/nsh
 /// ====================================================================================
+#[allow(clippy::too_many_arguments)]
 async fn process_log(
     log: &str,  // Content of Build Log
     timestamp_log: Option<&str>,  // Timestamp of Build Log: "2025-01-27T07:42:32.099Z"
@@ -138,7 +139,7 @@ async fn process_log(
         if group == "unknown" { extract_rewind_fields(lines).await? }
         else { (None, None, None, None, None, None) };
 
-    for (linenum, line) in lines.into_iter().enumerate() {
+    for (linenum, line) in lines.iter().enumerate() {
         // Not a delimiter: ====== test session starts
         if line.starts_with(DELIMITER) && !line.contains(" ") {
             // Process the target
@@ -160,10 +161,10 @@ async fn process_log(
         // macOS Logs use Local Time, not UTC. We convert Local Time to UTC.
         // To get the UTC Time Difference:
         // Search for "utc_time=2024-11-09T03:51:42" and "local_time=2024-11-09T11:51:42"
-        } else if line.starts_with("utc_time=") {
-            utc_time = Some(&line[9..]);
-        } else if line.starts_with("local_time=") {
-            local_time = Some(&line[11..]); 
+        } else if let Some(stripped) = line.strip_prefix("utc_time=") {
+            utc_time = Some(stripped);
+        } else if let Some(stripped) = line.strip_prefix("local_time=") {
+            local_time = Some(stripped); 
         }
     }
     Ok(())
@@ -179,6 +180,8 @@ async fn process_log(
 ///   Enabling CONFIG_ARM_TOOLCHAIN_GNU_EABI
 ///   Building NuttX...
 ///   Normalize freedom-kl25z/nsh
+#[allow(clippy::too_many_arguments)]
+#[allow(clippy::regex_creation_in_loops)]
 async fn process_target(
     lines: &[&str],  // Content of Build Log
     timestamp_log: Option<&str>,  // Timestamp of Build Log: "2025-01-27T07:42:32.099Z"
@@ -249,7 +252,7 @@ async fn process_target(
     let lines = &lines[l..];
     for line in lines {
         let line = line.trim();
-        if line.len() == 0 ||
+        if line.is_empty() ||
             line.starts_with("----------") ||
             line.starts_with("-- ") ||  // "-- Build type:"
             line.starts_with("Cleaning") ||
@@ -534,6 +537,7 @@ async fn process_target(
 /// # HELP build_score 1.0 for successful build, 0.0 for failed build
 /// build_score{ version=1, user="nuttxpr", group="risc-v-01", board="ox64", config="nsh", target="ox64:nsh", url="http://aaa", msg="warning: aaa" } 0.5
 /// EOF
+#[allow(clippy::too_many_arguments)]
 async fn post_to_pushgateway(
     build_score: f32,
     timestamp: &str,
@@ -609,14 +613,14 @@ async fn post_to_pushgateway(
     //     if user == "rewind" { format!("{target}@{}@{}", nuttx_hash.unwrap(), apps_hash.unwrap()) }
     //     else { target.to_string() };
     let prev_opt =
-        if build_score_prev.is_some() {
+        if let Some(build_score_prev) = build_score_prev {
             format!(r#", nuttx_hash_prev="{}", apps_hash_prev="{}", build_score_prev="{}""#, 
-                nuttx_hash_prev.clone().unwrap(), apps_hash_prev.clone().unwrap(), build_score_prev.unwrap())
+                nuttx_hash_prev.clone().unwrap(), apps_hash_prev.clone().unwrap(), build_score_prev)
         } else { "".into() };
     let next_opt =
-        if build_score_next.is_some() {
+        if let Some(build_score_next) = build_score_next {
             format!(r#", nuttx_hash_next="{}", apps_hash_next="{}", build_score_next="{}""#, 
-                nuttx_hash_next.clone().unwrap(), apps_hash_next.clone().unwrap(), build_score_next.unwrap())
+                nuttx_hash_next.clone().unwrap(), apps_hash_next.clone().unwrap(), build_score_next)
         } else { "".into() };
 
     // Get the Log Timestamp
@@ -683,6 +687,7 @@ build_score{{ version="{version}", timestamp="{timestamp}", timestamp_log="{time
 // Extract the fields for Build Rewind, based on the Build Log
 // ***** Build / Test OK for Previous Commit: nuttx @ be40c01ddd6f43a527abeae31042ba7978aabb58 / nuttx-apps @ a6b9e718460a56722205c2a84a9b07b94ca664aa
 // ***** BUILD / TEST FAILED FOR NEXT COMMIT: nuttx @ 48846954d8506e1c95089a8654787fdc42cc098c / nuttx-apps @ a6b9e718460a56722205c2a84a9b07b94ca664aa
+#[allow(clippy::regex_creation_in_loops)]
 async fn extract_rewind_fields(lines: &Vec<&str>) -> Result<RewindFields, Box<dyn std::error::Error>> {
     let mut nuttx_hash_prev: Option<String> = None;
     let mut apps_hash_prev: Option<String> = None;
