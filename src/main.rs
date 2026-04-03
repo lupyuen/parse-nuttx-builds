@@ -75,7 +75,8 @@ async fn process_file(args: &Args) -> Result<(), Box<dyn std::error::Error>> {
     let filename = Path::new(&args.file)
         .file_name().unwrap()
         .to_str().unwrap();
-    let log = fs::read_to_string(&args.file).unwrap();
+    let log = fs::read_to_string(&args.file).unwrap()
+        .replace("\r\n", "\n");
 
     // Look for "##[endgroup]\n##[group]Run ./sources/nuttx/.github/actions/ci-container" and truncate everything before
     // Same for "##[group]Run echo "::add-matcher::sources/nuttx/.github/gcc.json""
