@@ -134,7 +134,7 @@ set -x  ## Echo commands
 ## Unzip the Log Files
 pushd $tmp_path
 set +e  #  Ignore unzip warnings: "warning:  stripped absolute path spec from /system.txt"
-unzip /tmp/run-log.zip
+unzip -o /tmp/run-log.zip
 set -e  #  Exit when any command fails
 popd
 
