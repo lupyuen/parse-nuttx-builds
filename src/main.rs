@@ -282,6 +282,8 @@ async fn process_target(
             line.contains("git add <file>") ||  // "(use "git add <file>..." to update what will be committed)"
             line.contains("git restore <file>") ||  // "(use "git restore <file>..." to discard changes in working directory)"
             line.contains("***** BUILD FAILED") ||  // "***** BUILD FAILED"
+            line.starts_with("Removing ") ||  // "Removing libs/libbuiltin/bin/"
+            line.starts_with("nothing to commit") ||  // "nothing to commit, working tree clean"
             line.starts_with("set +") ||  // "set +e"
             line.starts_with("set -") ||  // "set -e"
             line.starts_with("+ set +") ||  // "+ set +e"
@@ -335,6 +337,7 @@ async fn process_target(
             line.contains("build environment is likely misconfigured") ||  // "| \n = note: the build environment is likely misconfigured"
             line == "|" ||  // "| \n = note: the build environment is likely misconfigured"
             line.starts_with("+ '[' -d /github/workspace/sources/tools/ccache") ||  // "+ '[' -d /github/workspace/sources/tools/ccache ']' \n + ccache -s"
+            line.contains("WARNING: YOU ARE USING") ||  // ">>>> WARNING: YOU ARE USING THE DEFAULT ADMIN PASSWORD (CONFIG_BOARD_ETC_ROMFS_PASSWD_PASSWORD=\"Administrator\")!!! PLEASE CHANGE IT!!! <<<<"
             // Begin USE_LEGACY_PINMAP
             line.contains("USE_LEGACY_PINMAP will be deprecated") ||  // "44 | #  pragma message \"CONFIG_STM32_USE_LEGACY_PINMAP will be deprecated migrate board.h see tools/stm32_pinmap_tool.py\"
             line == "|           ^~~~~~~" ||  // "|           ^~~~~~~"
@@ -585,6 +588,13 @@ async fn post_to_pushgateway(
     // Truncate the message to fit into Prometheus
     msg_join = sanitize_text(&msg_join);
     msg_join.truncate(512);
+
+    // Handle unknown error or warning
+    let msg_join =
+        if msg_join.is_empty() && build_score < 1.0 { "(Unknown)".into() }
+        else { msg_join };
+
+    // Wrap the message
     let msg_opt =
         if msg.is_empty() { "".into() }
         else { format!(", msg=\"{msg_join}\"") };
@@ -771,4 +781,6 @@ fn sanitize_text(s: &str) -> String {
     .replace("\\\\n", "\\n")
     .replace("\"", "\\\"")
     .replace("\x1b", "")
+    .trim()
+    .to_string()
 }
