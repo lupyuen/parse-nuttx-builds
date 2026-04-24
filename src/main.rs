@@ -129,9 +129,26 @@ async fn process_log(
     let mut target_linenum: Option<usize> = None;
     let mut utc_time: Option<&str> = None;
     let mut local_time: Option<&str> = None;
-    let lines = &log.split('\n').collect::<Vec<_>>();
+
+    // Check whether Build Job failed to start e.g. Install NTFC Error
+    if !log.contains(DELIMITER) {
+        // If Timestamp of Build Log is not available, use the current time
+        let timestamp = if let Some(timestamp_log) = timestamp_log {
+            timestamp_log.to_string()
+        } else {
+            DateTime::parse_from_rfc3339(&chrono::Utc::now().to_rfc3339()).unwrap()
+                .to_rfc3339().as_str()[0..19].to_string()
+        };
+        println!("*** Build Job failed to start @ {timestamp}");
+        post_to_pushgateway(0.0, &timestamp, timestamp_log, user, defconfig, group, "unknown:unknown", url, nuttx_hash, apps_hash,
+            &vec!["(Build Job failed to start)"],
+            &None, &None, None, &None, &None, None, run_id, job_id, step)
+            .await?;
+        return Ok(());
+    }
 
     // For Build Rewind: Extract the fields
+    let lines = &log.split('\n').collect::<Vec<_>>();
     let (
         nuttx_hash_prev, apps_hash_prev, build_score_prev,
         nuttx_hash_next, apps_hash_next, build_score_next,
