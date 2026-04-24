@@ -139,9 +139,29 @@ async fn process_log(
             DateTime::parse_from_rfc3339(&chrono::Utc::now().to_rfc3339()).unwrap()
                 .to_rfc3339().as_str()[0..19].to_string()
         };
+        let url =
+            if url.starts_with("https://gitlab.com") {
+                // GitLab Snippet
+                let linenum2 = 1;
+                format!("{url}#L{linenum2}")
+            } else if let Some(run_id) = run_id {
+                // GitHub Actions Log
+                assert_eq!(url, "");
+                let repo = repo.unwrap();
+                let job_id = job_id.unwrap();
+                let step = step.unwrap();
+                let linenum2 = 1;
+                format!("https://github.com/{user}/{repo}/actions/runs/{run_id}/job/{job_id}#step:{step}:{linenum2}")
+            }
+            else {
+                // GitHub Gist
+                let filename2 = filename.replace(".", "-");
+                let linenum2 = 1;
+                format!("{url}#file-{filename2}-L{linenum2}")
+            };
         let msg = format!("(Build Job {group} failed to start)").to_string();
         println!("*** {msg} @ {timestamp}");
-        post_to_pushgateway(0.0, &timestamp, timestamp_log, user, defconfig, group, "unknown:unknown", url, nuttx_hash, apps_hash,
+        post_to_pushgateway(0.0, &timestamp, timestamp_log, user, defconfig, group, "unknown:unknown", &url, nuttx_hash, apps_hash,
             &vec![&msg],
             &None, &None, None, &None, &None, None, run_id, job_id, step)
             .await?;
