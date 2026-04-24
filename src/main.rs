@@ -139,9 +139,10 @@ async fn process_log(
             DateTime::parse_from_rfc3339(&chrono::Utc::now().to_rfc3339()).unwrap()
                 .to_rfc3339().as_str()[0..19].to_string()
         };
-        println!("*** Build Job failed to start @ {timestamp}");
+        let msg = format!("(Build Job {group} failed to start)").to_string();
+        println!("*** {msg} @ {timestamp}");
         post_to_pushgateway(0.0, &timestamp, timestamp_log, user, defconfig, group, "unknown:unknown", url, nuttx_hash, apps_hash,
-            &vec!["(Build Job failed to start)"],
+            &vec![&msg],
             &None, &None, None, &None, &None, None, run_id, job_id, step)
             .await?;
         return Ok(());
