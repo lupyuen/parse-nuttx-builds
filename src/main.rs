@@ -131,7 +131,7 @@ async fn process_log(
     let mut local_time: Option<&str> = None;
 
     // Check whether Build Job failed to start e.g. Install NTFC Error
-    if !log.contains(DELIMITER) {
+    if log.contains("pytest") && !log.contains(DELIMITER) {
         // If Timestamp of Build Log is not available, use the current time
         let timestamp = if let Some(timestamp_log) = timestamp_log {
             timestamp_log.to_string()
